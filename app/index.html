@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Willow House — Household budget</title>
+<meta name="description" content="Willow House is the Alvarez family's household budget: envelopes, bills, savings goals and reports, all in one place. Works offline, on desktop and phone.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231d4a38'/%3E%3Cpath d='M16 7 6 17h3v8h6v-6h2v6h6v-8h3L16 7z' fill='%23faf6ee'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="#/">
+    <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6 4 24h6v16h12v-11h4v11h12V24h6L24 6z" fill="#faf6ee"/><path d="M24 6 4 24h6v16h12v-11h4v11h12V24h6L24 6z" fill="none" stroke="#faf6ee" stroke-width="2"/></svg>
+    <span class="brand-text"><strong>Willow House</strong><small>Household budget · The Alvarez family</small></span>
+  </a>
+  <nav class="site-nav" aria-label="Sections">
+    <a class="nav-link" href="#/">Dashboard</a>
+    <a class="nav-link" href="#/transactions">Transactions</a>
+    <a class="nav-link" href="#/budgets">Budgets</a>
+    <a class="nav-link" href="#/bills">Bills</a>
+    <a class="nav-link" href="#/goals">Goals</a>
+    <a class="nav-link" href="#/reports">Reports</a>
+  </nav>
+</header>
+<main id="view" class="page"></main>
+<footer class="site-footer">
+  <p><strong>Willow House</strong> — a household budget that lives where the family lives. Envelopes, bills, goals and reports; every figure comes from the ledger on this page.</p>
+  <p class="muted">All data stays in this browser (localStorage). No accounts, no tracking, no network requests — the site works fully offline. Demo household: Maya &amp; Dan Alvarez, Sofia &amp; Leo, November 2026.</p>
+  <p class="muted">Made for the make.fun “best household budget site” bounty. <a href="#/reports">See the reports</a> · <a href="#/transactions">Open the ledger</a></p>
+</footer>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script type="module" src="main.js"></script>
+</body>
+</html>
