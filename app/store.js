@@ -1,6 +1,6 @@
 // Willow House — state store. One job: load, save and compute from the data.
 // Everything persists in localStorage under one key; Reset restores the seed.
-import { CATEGORIES, HISTORY, MONTHS, categoryById, seedState } from './data.js';
+import { CATEGORIES, HISTORY, MONTHS, TRANSACTIONS, TRANSACTIONS_OCT, categoryById, seedState } from './data.js';
 
 const KEY = 'willow-house-v1';
 
@@ -45,6 +45,12 @@ export function setMonth(monthId) {
 
 export function monthLabel() {
   return (MONTHS.find((m) => m.id === state.month) || MONTHS[1]).label;
+}
+
+// Short label for headings that name the month ("Nov 2026").
+export function shortMonthLabel(monthId = state.month) {
+  const m = MONTHS.find((x) => x.id === monthId) || MONTHS[1];
+  return m.label.replace('October', 'Oct').replace('November', 'Nov');
 }
 
 export function monthTransactions() {
@@ -114,6 +120,24 @@ export function goalsProgress() {
 
 export function historyWithCurrent() {
   return HISTORY.map((h) => (h.month === state.month ? { ...h, spent: monthSpent(), income: monthIncome() } : h));
+}
+
+// Consistency guard: the seed ledger must sum to the HISTORY figures the
+// Reports chart shows. Compares the seed (not live state, so a user's own
+// edits never trip it) and returns every month that disagrees.
+export function seedMatchesHistory() {
+  const LEDGERS = { '2026-10': TRANSACTIONS_OCT, '2026-11': TRANSACTIONS };
+  const bad = [];
+  for (const h of HISTORY) {
+    const list = LEDGERS[h.month];
+    if (!list) continue;
+    const spent = list.filter((t) => t.kind === 'expense').reduce((s, t) => s - t.amount, 0);
+    const income = list.filter((t) => t.kind === 'income').reduce((s, t) => s + t.amount, 0);
+    if (Math.abs(spent - h.spent) > 0.005 || Math.abs(income - h.income) > 0.005) {
+      bad.push({ month: h.month, ledgerSpent: Math.round(spent * 100) / 100, historySpent: h.spent, ledgerIncome: income, historyIncome: h.income });
+    }
+  }
+  return bad;
 }
 
 export function addTransaction(tx) {

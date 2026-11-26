@@ -33,10 +33,14 @@ export function donutSVG(parts, size = 220, centerSub = 'spent in November') {
     const frac = p.value / total;
     if (frac <= 0) continue;
     const sweep = Math.max(frac * 360 - 1.2, 0.6);
-    slices += `<path d="${arcPath(cx, cy, outer, inner, angle, angle + sweep)}" fill="${p.color}"><title>${p.label}: $${p.value.toFixed(2)}</title></path>`;
+    const pct = Math.round(frac * 100);
+    slices += `<path d="${arcPath(cx, cy, outer, inner, angle, angle + sweep)}" fill="${p.color}"><title>${p.label}: $${p.value.toFixed(2)} — ${pct}% of spending</title></path>`;
     angle += frac * 360;
   }
-  return `<svg viewBox="0 0 ${size} ${size}" class="chart" role="img" aria-label="Spending by category donut chart">${disc}${slices}${center}</svg>`;
+  // Screen-reader summary: every slice named with its share, so the chart
+  // reads the same as the legend below it.
+  const summary = parts.map((p) => `${p.label} $${Math.round(p.value).toLocaleString('en-US')} (${Math.round((p.value / total) * 100)}%)`).join(', ');
+  return `<svg viewBox="0 0 ${size} ${size}" class="chart" role="img" aria-label="Spending by category, $${Math.round(total).toLocaleString('en-US')} total: ${summary}">${disc}${slices}${center}</svg>`;
 }
 
 // Grouped bars: income vs spending over months. `rows` is [{label, income, spent}].
@@ -59,11 +63,15 @@ export function trendSVG(rows, width = 640, height = 260) {
   let bars = '';
   rows.forEach((r, i) => {
     const cx = padL + groupW * i + groupW / 2;
+    const incomeX = cx - barW - 3 + barW / 2;
+    const spentX = cx + 3 + barW / 2;
     bars += `<rect x="${(cx - barW - 3).toFixed(1)}" y="${y(r.income).toFixed(1)}" width="${barW}" height="${(padT + plotH - y(r.income)).toFixed(1)}" rx="3" fill="#1d4a38"><title>${r.label} income $${r.income.toLocaleString('en-US')}</title></rect>`;
+    bars += `<text x="${incomeX.toFixed(1)}" y="${(y(r.income) - 5).toFixed(1)}" text-anchor="middle" class="chart-value-label">$${(r.income / 1000).toFixed(1)}k</text>`;
     bars += `<rect x="${(cx + 3).toFixed(1)}" y="${y(r.spent).toFixed(1)}" width="${barW}" height="${(padT + plotH - y(r.spent)).toFixed(1)}" rx="3" fill="#d96c3f"><title>${r.label} spending $${Math.round(r.spent).toLocaleString('en-US')}</title></rect>`;
+    bars += `<text x="${spentX.toFixed(1)}" y="${(y(r.spent) - 5).toFixed(1)}" text-anchor="middle" class="chart-value-label">$${(r.spent / 1000).toFixed(1)}k</text>`;
     bars += `<text x="${cx}" y="${height - 8}" text-anchor="middle" class="axis-label">${r.label}</text>`;
   });
-  return `<svg viewBox="0 0 ${width} ${height}" class="chart wide" role="img" aria-label="Income versus spending by month">${grid}${bars}</svg>`;
+  return `<svg viewBox="0 0 ${width} ${height}" class="chart wide" role="img" aria-label="Income versus spending by month, ${rows[0].label} to ${rows[rows.length - 1].label}">${grid}${bars}</svg>`;
 }
 
 // Progress ring for a savings goal, 0–100%.
@@ -72,7 +80,7 @@ export function ringSVG(pct, size = 96) {
   const c = 2 * Math.PI * r;
   const shown = Math.max(0, Math.min(100, pct));
   const dash = (shown / 100) * c;
-  return `<svg viewBox="0 0 ${size} ${size}" class="chart ring" role="img" aria-label="${shown}% funded"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="#e7e0d2" stroke-width="9"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="#1d4a38" stroke-width="9" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 ${size / 2} ${size / 2})"/><text x="${size / 2}" y="${size / 2 + 5}" text-anchor="middle" class="ring-label">${shown}%</text></svg>`;
+  return `<svg viewBox="0 0 ${size} ${size}" class="chart ring" role="img" aria-label="${shown}% funded"><title>${shown}% funded</title><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="#e7e0d2" stroke-width="9"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="#1d4a38" stroke-width="9" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 ${size / 2} ${size / 2})"/><text x="${size / 2}" y="${size / 2 + 5}" text-anchor="middle" class="ring-label">${shown}%</text></svg>`;
 }
 
 // Horizontal budget bar: used fraction of the envelope, red when over.

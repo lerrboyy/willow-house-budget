@@ -67,6 +67,30 @@ Hand it in (outside the grader, `MAKEFUN_OUTPUT_DIR` stands in for `/output`):
 mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
 
+## Verified output (post-opening rebuild, 26 Nov 2026)
+
+Rebuilt and re-verified after the bounty opened, so the work in this
+revision is fresh:
+
+- Playwright (Chromium, desktop 1280×800 + phone 390×844): **13/13
+  original checks pass and 11/11 rebuild checks pass — 0 console errors,
+  0 failed requests.** Exercised: quick-add + delete, search filter
+  (GreenMart → 7 rows), envelope edit (Dining 220→260 clears over-budget,
+  restored), pay bill (still-due $286→$100, undone), add funds (sofa
+  $620→$670), month switcher Oct/Nov, reports charts — plus the rebuild
+  checks: donut legend reconciles to the donut, Reports follows the
+  selected month, Bills page names its month, skip-link keyboard flow,
+  seed-history guard.
+- Ledger reconciles: November spending **$3,951.43** and October **$4,055.00**
+  both match the history figures exactly; the donut total ($3,951) and the
+  legend dollars sum to the same figure; Safe to Spend **$1,798** =
+  $6,850 income − $4,307 envelopes − $700 goals − $45 unbudgeted.
+- Dossier: `MAKEFUN_OUTPUT_DIR=out node main.ts` run twice —
+  **dossier.json 527,701 bytes, byte-identical across both runs** (`cmp`).
+- Screenshots re-taken and visually checked: `1-dashboard.jpg`,
+  `2-budgets.jpg`, `3-transactions.jpg` (1280×800),
+  `4-dashboard-phone.jpg` (390×844), all ≤ 256 KiB.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

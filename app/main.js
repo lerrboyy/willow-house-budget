@@ -1,7 +1,12 @@
 // Willow House — app boot. One job: routing and wiring every control.
 // All rendering lives in views.js; this file only routes and reacts.
 import { actions, getTxnFilter, renderBills, renderBudgets, renderDashboard, renderGoals, renderReports, renderTransactions, setTxnFilter } from './views.js';
-import { monthLabel, monthTransactions } from './store.js';
+import { monthLabel, monthTransactions, seedMatchesHistory } from './store.js';
+
+// Self-check at boot: the seeded history figures must match what the ledger
+// sums to. A mismatch means a displayed number disagrees with the ledger.
+const seedMismatch = seedMatchesHistory();
+if (seedMismatch.length) console.warn('Willow House: seed history disagrees with the ledger', seedMismatch);
 
 const view = document.getElementById('view');
 const toast = document.getElementById('toast');

@@ -6,7 +6,7 @@
   --cream: #faf6ee;
   --paper: #fffdf7;
   --ink: #22302a;
-  --muted: #6b7a71;
+  --muted: #5a6a61;
   --line: #e7e0d2;
   --terra: #d96c3f;
   --amber: #d99a2b;
@@ -32,6 +32,19 @@ h2 { font-size: 1.25rem; }
 h3 { font-size: 1.05rem; }
 p { margin: 0 0 0.75rem; }
 a { color: var(--pine); }
+/* Keyboard users get a visible focus ring on every control, not just inputs. */
+:focus-visible { outline: 3px solid var(--terra); outline-offset: 2px; border-radius: 4px; }
+input:focus-visible, select:focus-visible { outline: 3px solid rgba(29, 74, 56, 0.55); }
+/* Skip link: hidden until a keyboard user tabs to it. */
+.skip-link {
+  position: absolute; left: 1rem; top: -4rem; z-index: 30;
+  background: var(--pine-dark); color: #fff; padding: 0.6rem 1.1rem;
+  border-radius: 999px; font-weight: 700; text-decoration: none;
+  transition: top 0.15s;
+}
+.skip-link:focus { top: 0.7rem; color: #fff; }
+/* Keep the skip target from showing a focus ring when jumped to. */
+#view:focus { outline: none; }
 .muted { color: var(--muted); font-size: 0.9rem; }
 .num { text-align: right; white-space: nowrap; }
 .income { color: var(--ok); }
@@ -91,12 +104,16 @@ a { color: var(--pine); }
 .hero-headline { font-family: Georgia, "Times New Roman", serif; color: #fff; font-size: 2.1rem; line-height: 1.2; font-weight: 700; margin: 0 0 0.4rem; }
 .hero .lede { color: #d8e6dc; }
 .hero-text { flex: 1 1 420px; }
-.hero-chart { flex: 0 1 300px; margin: 0 auto; text-align: center; }
+.hero-chart { flex: 0 1 380px; margin: 0 auto; text-align: center; }
 .safe-amount { color: #ffd9a8; }
 .hero-math { font-size: 0.88rem; color: #bcd2c4; margin: 0.9rem 0; }
 .hero-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.9rem; }
 .legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; justify-content: center; font-size: 0.85rem; margin-top: 0.4rem; }
 .legend span { white-space: nowrap; }
+/* The hero legend lists every donut slice (11 items): a two-column grid
+   keeps it compact so the hero does not stretch with empty space. */
+.hero-chart .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 0.2rem 1rem; text-align: left; justify-content: normal; font-size: 0.82rem; }
+.hero-chart .legend span { white-space: normal; }
 .legend-inline { display: flex; gap: 1rem; font-size: 0.9rem; }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.3rem; vertical-align: baseline; }
 
@@ -202,6 +219,7 @@ input:focus, select:focus { outline: 3px solid rgba(29, 74, 56, 0.25); border-co
 .ring-label { font-size: 15px; font-weight: 700; fill: var(--pine-dark); }
 .grid-line { stroke: #e7e0d2; stroke-width: 1; }
 .axis-label { font-size: 11px; fill: var(--muted); }
+.chart-value-label { font-size: 10px; font-weight: 700; fill: var(--muted); }
 
 /* Month switcher */
 .month-switch { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.88rem; font-weight: 600; color: #43524a; }
@@ -231,6 +249,7 @@ input:focus, select:focus { outline: 3px solid rgba(29, 74, 56, 0.25); border-co
   .two-col, .env-grid, .goal-grid { grid-template-columns: 1fr; }
   .form-grid { grid-template-columns: 1fr 1fr; }
   .hero-chart { flex-basis: 100%; }
+  .hero-chart .legend { grid-template-columns: 1fr; }
   .bill-right { white-space: normal; }
 }
 @media (max-width: 420px) {

@@ -1,12 +1,12 @@
 // Willow House — pages. One job: turn state into HTML for each route.
 // Every number comes from store.js; nothing on any page is hard-coded.
-import { CATEGORIES, MONTHS, categoryById } from './data.js';
+import { BILLS_MONTH, CATEGORIES, MONTHS, categoryById } from './data.js';
 import {
   addBill, addGoal, addToGoal, addTransaction, assignedTotal, billsDue, billsDueTotal,
   categoryList, deleteTransaction, envelopeStatus, getState, goalsMonthlyTotal,
   goalsProgress, historyWithCurrent, monthIncome, monthLabel, monthSpent,
   monthTransactions, payBill, resetAll, safeToSpend, setEnvelopeAssigned,
-  setMonth, spentByCategory, topMerchants, unbudgetedSpent, unpayBill,
+  setMonth, shortMonthLabel, spentByCategory, topMerchants, unbudgetedSpent, unpayBill,
 } from './store.js';
 import { budgetBarSVG, donutSVG, ringSVG, trendSVG } from './charts.js';
 
@@ -74,7 +74,9 @@ export function renderDashboard() {
   const shortMonth = getState().month === '2026-10' ? 'Oct 2026' : 'Nov 2026';
   const envs = envelopeStatus().slice().sort((a, b) => (b.spent / b.available) - (a.spent / a.available));
   const goals = goalsProgress();
-  const recent = monthTransactions().slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6);
+  // "Recent spending" shows spending only: income rows (paydays) belong in
+  // the ledger, not under a spending heading.
+  const recent = monthTransactions().filter((t) => t.kind === 'expense').slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6);
   const over = envs.filter((e) => e.left < 0);
 
   return `
@@ -96,7 +98,7 @@ export function renderDashboard() {
     </div>
     <div class="hero-chart">
       ${donutSVG(parts, 220, `spent in ${shortMonth}`)}
-      <div class="legend">${parts.slice(0, 6).map((p) => `<span>${dot(p.color)} ${p.label} <strong>${money0(p.value)}</strong></span>`).join('')}</div>
+      <div class="legend">${parts.map((p) => `<span>${dot(p.color)} ${p.label} <strong>${money0(p.value)}</strong> · ${Math.round((p.value / spent) * 100)}%</span>`).join('')}</div>
     </div>
   </section>
 
@@ -104,7 +106,7 @@ export function renderDashboard() {
     <div class="card stat"><span class="stat-label">Income</span><strong>${money0(income)}</strong><span class="muted">2 paydays this month</span></div>
     <div class="card stat"><span class="stat-label">Spent so far</span><strong>${money0(spent)}</strong><span class="muted">${Math.round((spent / income) * 100)}% of income</span></div>
     <div class="card stat"><span class="stat-label">Saved</span><strong>${money0(saved)}</strong><span class="muted">${Math.round((saved / income) * 100)}% savings rate</span></div>
-    <div class="card stat ${due.length ? 'alert' : ''}"><span class="stat-label">Bills still due</span><strong>${money0(dueTotal)}</strong><span class="muted">${due.length} bill${due.length === 1 ? '' : 's'} left in ${esc(monthLabel())}</span></div>
+    <div class="card stat ${due.length ? 'alert' : ''}"><span class="stat-label">Bills still due</span><strong>${money0(dueTotal)}</strong><span class="muted">${due.length} bill${due.length === 1 ? '' : 's'} left to pay · ${esc(BILLS_MONTH)}</span></div>
   </section>
 
   ${over.length ? `<div class="callout warn"><strong>Heads up:</strong> ${over.map((e) => `${e.label} is ${money0(-e.left)} over its envelope`).join('; ')}. Move money from another envelope or trim the next shop.</div>` : ''}
@@ -242,11 +244,10 @@ export function renderBills() {
   </div>`;
   return `
   <header class="page-head">
-    <div><h1>Bills</h1><p class="lede">Every recurring bill in one place. Pay what is due, see what autopay already handled, and add a new bill in seconds.</p></div>
-    ${monthSwitcher()}
+    <div><h1>Bills</h1><p class="lede">Every recurring bill in one place — the ${esc(BILLS_MONTH)} set. Pay what is due, see what autopay already handled, and add a new bill in seconds. The month switcher does not change bills: these are the household's fixed recurring bills, not a monthly ledger.</p></div>
   </header>
   <section class="stat-row">
-    <div class="card stat ${due.length ? 'alert' : ''}"><span class="stat-label">Still due in ${esc(monthLabel())}</span><strong>${money0(dueTotal)}</strong><span class="muted">${due.length} bill${due.length === 1 ? '' : 's'}</span></div>
+    <div class="card stat ${due.length ? 'alert' : ''}"><span class="stat-label">Still due · ${esc(BILLS_MONTH)}</span><strong>${money0(dueTotal)}</strong><span class="muted">${due.length} bill${due.length === 1 ? '' : 's'}</span></div>
     <div class="card stat"><span class="stat-label">Already paid</span><strong>${money0(paidTotal)}</strong><span class="muted">${paid.length} bill${paid.length === 1 ? '' : 's'}</span></div>
     <div class="card stat"><span class="stat-label">Monthly bills total</span><strong>${money0(dueTotal + paidTotal)}</strong><span class="muted">${state.bills.length} recurring bills</span></div>
   </section>
@@ -312,6 +313,7 @@ export function renderReports() {
   const byCat = spentByCategory(getState().month);
   const spent = monthSpent();
   const income = monthIncome();
+  const shortMonth = shortMonthLabel();
   const rows = CATEGORIES.filter((c) => (byCat[c.id] || 0) > 0)
     .map((c) => ({ ...c, value: byCat[c.id] }))
     .sort((a, b) => b.value - a.value);
@@ -339,18 +341,18 @@ export function renderReports() {
   <section class="card">
     <div class="card-head"><h2>Income vs spending — last 6 months</h2><span class="legend-inline"><span>${dot('#1d4a38')} Income</span> <span>${dot('#d96c3f')} Spending</span></span></div>
     ${trendSVG(history)}
-    <p class="muted">November is the live month: its bars come from the ledger, so adding a transaction moves them.</p>
+    <p class="muted">${esc(shortMonth)} is the live month: its bars come from the ledger, so adding a transaction moves them.</p>
   </section>
   <div class="two-col">
     <section class="card">
-      <div class="card-head"><h2>Where November went</h2><span>${money0(spent)} total</span></div>
+      <div class="card-head"><h2>Where ${esc(shortMonth)} went</h2><span>${money0(spent)} total</span></div>
       <table class="ledger">
         <thead><tr><th>Category</th><th class="num">Spent</th><th class="num">Share</th></tr></thead>
         <tbody>${rows.map((r) => `<tr><td>${dot(r.color)} ${r.label}</td><td class="num">${money(r.value)}</td><td class="num">${Math.round((r.value / spent) * 100)}%</td></tr>`).join('')}</tbody>
       </table>
     </section>
     <section class="card">
-      <div class="card-head"><h2>Top merchants</h2><span>November</span></div>
+      <div class="card-head"><h2>Top merchants</h2><span>${esc(shortMonth)}</span></div>
       <table class="ledger">
         <thead><tr><th>Merchant</th><th class="num">Spent</th></tr></thead>
         <tbody>${merchants.map((m) => `<tr><td>${esc(m.merchant)}</td><td class="num">${money(m.total)}</td></tr>`).join('')}</tbody>
@@ -362,7 +364,7 @@ export function renderReports() {
   <section class="card">
     <div class="card-head"><h2>Take the numbers with you</h2></div>
     <p>Export the current month's ledger as a CSV file — it opens in any spreadsheet, and it is the same data this page shows.</p>
-    <button class="btn primary" data-action="export-csv">Download November ledger (CSV)</button>
+    <button class="btn primary" data-action="export-csv">Download ${esc(shortMonth)} ledger (CSV)</button>
     <button class="btn danger-outline" data-action="reset-demo">Reset demo data</button>
   </section>`;
 }

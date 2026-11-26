@@ -54,6 +54,11 @@ export const BILLS = [
   { id: 'b-sofa-fund', name: 'Sofa savings transfer', amount: 100, due: '2026-11-29', autopay: true, paid: false, category: 'home' },
 ];
 
+// The bills above are the November 2026 recurring set: they do not change
+// when the month switcher moves, so pages must say so instead of claiming
+// the bills belong to whichever month is selected.
+export const BILLS_MONTH = 'November 2026';
+
 // Savings goals. `saved` is the balance on 26 Nov 2026.
 export const GOALS = [
   { id: 'g-emergency', name: 'Emergency fund', target: 12000, saved: 8450, monthly: 300, note: 'Six months of essentials, for peace of mind.' },
